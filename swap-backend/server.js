@@ -320,3 +320,11 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+app.get('/debug-session', (req, res) => {
+  res.json({
+    sessionID: req.sessionID,
+    session: req.session,
+    user: req.user,
+    cookies: req.headers.cookie
+  });
+});
