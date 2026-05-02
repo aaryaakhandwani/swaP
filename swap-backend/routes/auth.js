@@ -115,10 +115,12 @@ router.get('/google/callback',
       id: req.user.id, name: req.user.name, email: req.user.email,
       role: req.user.role, plan: req.user.plan, avatar_url: req.user.avatar_url
     };
-    res.redirect('/dashboard.html');
+    req.session.save((err) => {
+      if (err) console.error('Session save error:', err);
+      res.redirect('/dashboard.html');
+    });
   }
 );
-
 // ── LOGOUT ────────────────────────────────────────────────
 router.post('/logout', (req, res) => {
   req.session.destroy((err) => {
