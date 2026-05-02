@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — swaP</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body{overflow-x:hidden}
+.dash-page{display:flex;flex-direction:column;min-height:100vh}
+.dash-body{display:flex;flex:1}
+
+/* SIDEBAR */
+.dash-sidebar{width:240px;min-width:240px;background:var(--surface);border-right:1px solid var(--border);padding:24px 12px;display:flex;flex-direction:column;gap:2px;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
+.sidebar-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);padding:14px 12px 6px}
+.sidebar-link{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s;text-decoration:none;background:none;border:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif}
+.sidebar-link:hover{background:var(--bg2);color:var(--text)}
+.sidebar-link.active{background:var(--teal-wash);color:var(--teal2);font-weight:600}
+.sidebar-link svg{width:16px;height:16px;opacity:.7;flex-shrink:0}
+.sidebar-link.active svg,.sidebar-link:hover svg{opacity:1}
+.sidebar-pet-card{margin-top:auto;background:var(--teal-wash);border:1px solid var(--teal-mid);border-radius:14px;padding:16px;text-align:center}
+.sidebar-pet-avatar{width:52px;height:52px;border-radius:50%;background:white;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid var(--teal-mid)}
+.sidebar-pet-name{font-size:14px;font-weight:700;color:var(--teal2);font-family:'Syne',sans-serif}
+.sidebar-pet-breed{font-size:11.5px;color:var(--text3);margin-top:2px}
+.sidebar-qr-btn{margin-top:12px;width:100%;padding:8px;background:var(--teal);color:white;border:none;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s}
+.sidebar-qr-btn:hover{background:var(--teal2)}
+
+/* MAIN */
+.dash-main{flex:1;padding:36px 44px;background:var(--bg);overflow-y:auto}
+.dash-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px}
+.dash-greeting{font-size:22px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif}
+.dash-date{font-size:13px;color:var(--text3);margin-top:3px}
+.dash-add-btn{padding:10px 22px;background:var(--teal);color:white;border:none;border-radius:100px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:var(--shadow-teal);transition:all .22s;display:flex;align-items:center;gap:7px}
+.dash-add-btn:hover{background:var(--teal2);transform:translateY(-1px)}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 18px;box-shadow:var(--shadow-sm);transition:transform .25s,box-shadow .25s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.sc-label{font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:8px}
+.sc-value{font-size:24px;font-weight:700;color:var(--text);letter-spacing:-1px;font-family:'Syne',sans-serif;line-height:1}
+.sc-badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;margin-top:6px}
+.sc-badge.ok{background:var(--teal-wash);color:var(--teal2)}
+.sc-badge.warn{background:var(--warn-bg);color:var(--warn)}
+
+/* GRID */
+.dash-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-bottom:18px}
+.dash-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px}
+.dash-card-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.dash-card-title a{font-size:12px;color:var(--teal2);font-weight:600;font-family:'DM Sans',sans-serif}
+
+/* PET CARDS */
+.pet-card{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px;margin-bottom:10px;transition:all .22s;cursor:pointer}
+.pet-card:hover{border-color:var(--teal-soft);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.pet-avatar{width:48px;height:48px;border-radius:50%;background:var(--teal-wash);border:2px solid var(--teal-mid);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.pet-name{font-size:14px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif}
+.pet-breed{font-size:12px;color:var(--text3);margin-top:2px}
+.pet-stats{display:flex;gap:10px;margin-top:6px}
+.pet-stat{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:3px}
+.pet-actions{margin-left:auto;display:flex;gap:6px}
+.pet-action-btn{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-qr{background:var(--teal-wash);color:var(--teal2)}
+.btn-qr:hover{background:var(--teal);color:white}
+.btn-edit{background:var(--bg2);color:var(--text2)}
+.btn-edit:hover{background:var(--border);color:var(--text)}
+
+/* UPCOMING EVENTS */
+.upcoming-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.upcoming-item:last-child{border-bottom:none}
+.upcoming-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.dot-warn{background:var(--warn)}
+.dot-ok{background:var(--teal)}
+.upcoming-title{font-size:13px;font-weight:600;color:var(--text)}
+.upcoming-meta{font-size:11.5px;color:var(--text3);margin-top:2px}
+.upcoming-date{margin-left:auto;font-size:12px;font-weight:600;color:var(--text2);white-space:nowrap;padding-left:8px}
+
+/* NOTIFICATIONS BADGE */
+.notif-badge{background:var(--danger);color:white;font-size:10px;font-weight:700;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:auto}
+
+/* QR MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-box{background:var(--surface);border-radius:24px;padding:36px;width:100%;max-width:400px;box-shadow:var(--shadow-lg);transform:scale(.95);transition:transform .25s;text-align:center}
+.modal-overlay.open .modal-box{transform:scale(1)}
+.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text);margin-bottom:6px}
+.modal-sub{font-size:13.5px;color:var(--text2);margin-bottom:24px}
+.qr-img{width:200px;height:200px;margin:0 auto 20px;border-radius:14px;overflow:hidden;border:3px solid var(--teal-mid);background:white}
+.qr-img img{width:100%;height:100%;object-fit:contain}
+.qr-url{font-size:12px;color:var(--text3);word-break:break-all;margin-bottom:20px;padding:8px 12px;background:var(--bg);border-radius:8px}
+.modal-btn-row{display:flex;gap:10px;justify-content:center}
+.modal-btn{padding:10px 20px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-primary-sm{background:var(--teal);color:white}
+.btn-primary-sm:hover{background:var(--teal2)}
+.btn-ghost-sm{background:var(--bg2);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost-sm:hover{background:var(--border)}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--bg2);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--text3)}
+.modal-close:hover{background:var(--border);color:var(--text)}
+
+/* ADD PET MODAL */
+.add-pet-modal .modal-box{max-width:520px;text-align:left}
+.form-field{margin-bottom:14px}
+.form-field label{display:block;font-size:12.5px;font-weight:600;color:var(--text2);margin-bottom:5px}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:13.5px;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);transition:border-color .2s;outline:none}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--teal)}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* MEDICAL TIMELINE */
+.timeline-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.timeline-item:last-child{border-bottom:none}
+.tl-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.tl-icon.vaccine{background:#E8F6F4}
+.tl-icon.visit{background:#EFF6FF}
+.tl-icon.record{background:#FFF7EE}
+.tl-title{font-size:13px;font-weight:600;color:var(--text)}
+.tl-meta{font-size:11.5px;color:var(--text3);margin-top:2px}
+.tl-date{margin-left:auto;font-size:11.5px;color:var(--text3);white-space:nowrap;padding-left:8px}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:40px 20px}
+.empty-state .emoji{font-size:48px;margin-bottom:12px}
+.empty-state p{font-size:14px;color:var(--text3)}
+
+/* PLAN BANNER */
+.plan-banner{background:linear-gradient(135deg,var(--teal) 0%,var(--teal2) 100%);border-radius:16px;padding:20px 24px;color:white;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.plan-banner-text h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:3px}
+.plan-banner-text p{font-size:13px;opacity:.9}
+.plan-banner-btn{padding:9px 20px;background:white;color:var(--teal2);border:none;border-radius:100px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;flex-shrink:0}
+.plan-banner-btn:hover{transform:scale(1.03)}
+
+/* SKELETON */
+.skeleton{background:linear-gradient(90deg,var(--border) 25%,var(--bg2) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* SCAN ACTIVITY */
+.scan-bar{display:flex;align-items:flex-end;gap:4px;height:60px;margin-top:8px}
+.scan-bar-item{flex:1;background:var(--teal-wash);border-radius:4px 4px 0 0;transition:background .2s;min-height:4px}
+.scan-bar-item:hover{background:var(--teal)}
+.scan-labels{display:flex;gap:4px;margin-top:4px}
+.scan-label{flex:1;font-size:10px;color:var(--text3);text-align:center}
+
+/* LOGOUT */
+.logout-link{color:var(--danger)!important}
+.logout-link:hover{background:var(--danger-bg)!important}
+
+@media(max-width:1024px){.dash-grid{grid-template-columns:1fr}}
+@media(max-width:768px){
+  .dash-sidebar{display:none}
+  .dash-main{padding:24px 18px}
+  .stats-row{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body class="dash-page">
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="logo">
+    <span style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--teal)">swaP</span>
+  </a>
+  <div class="nav-links" style="display:flex;gap:6px">
+    <button class="sidebar-link active" onclick="showTab('overview')">Overview</button>
+    <button class="sidebar-link" onclick="showTab('pets')">My Pets</button>
+    <button class="sidebar-link" onclick="showTab('medical')">Medical</button>
+  </div>
+  <div class="nav-right">
+    <button class="theme-toggle" title="Toggle theme"></button>
+    <div style="position:relative">
+      <button class="nav-btn-ghost" onclick="showTab('notifications')" id="notifBtn">
+        🔔 <span id="notifCount" style="display:none;background:var(--danger);color:white;font-size:10px;font-weight:700;padding:1px 5px;border-radius:100px;margin-left:2px"></span>
+      </button>
+    </div>
+    <div id="userAvatar" style="width:34px;height:34px;border-radius:50%;background:var(--teal-wash);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--teal2);cursor:pointer;font-family:'Syne',sans-serif" title="Profile"></div>
+    <button class="nav-btn-ghost logout-link" onclick="handleLogout()">Sign out</button>
+  </div>
+</nav>
+
+<div class="dash-body">
+
+<!-- SIDEBAR -->
+<aside class="dash-sidebar">
+  <div class="sidebar-section-label">Navigation</div>
+  <button class="sidebar-link active" onclick="showTab('overview')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Overview
+  </button>
+  <button class="sidebar-link" onclick="showTab('pets')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    My Pets
+  </button>
+  <button class="sidebar-link" onclick="showTab('medical')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+    Medical Records
+  </button>
+  <button class="sidebar-link" onclick="showTab('notifications')" id="sidebarNotifLink">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    Notifications
+    <span id="sidebarNotifBadge" style="display:none" class="notif-badge"></span>
+  </button>
+
+  <div class="sidebar-section-label">Account</div>
+  <button class="sidebar-link" onclick="showTab('subscription')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    Subscription
+  </button>
+  <button class="sidebar-link logout-link" onclick="handleLogout()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Sign Out
+  </button>
+
+  <!-- Active Pet Quick Card -->
+  <div class="sidebar-pet-card" id="sidebarPetCard" style="display:none">
+    <div class="sidebar-pet-avatar" id="sidebarPetEmoji">🐾</div>
+    <div class="sidebar-pet-name" id="sidebarPetName">—</div>
+    <div class="sidebar-pet-breed" id="sidebarPetBreed">—</div>
+    <button class="sidebar-qr-btn" id="sidebarQRBtn">📱 Show QR Code</button>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="dash-main">
+
+  <!-- Welcome Banner (shown on first login) -->
+  <div id="welcomeBanner" style="display:none;background:linear-gradient(135deg,#4DB8AA,#3A9E92);border-radius:16px;padding:20px 24px;color:white;margin-bottom:20px">
+    <h3 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px">Welcome to swaP! 🎉</h3>
+    <p style="font-size:13.5px;opacity:.9">Your pet's digital vault is ready. Your QR code has been generated — attach it to your pet's collar!</p>
+  </div>
+
+  <!-- ═══ OVERVIEW TAB ═══ -->
+  <div id="tab-overview">
+    <div class="dash-top">
+      <div>
+        <div class="dash-greeting" id="greetingText">Good morning!</div>
+        <div class="dash-date" id="dateText"></div>
+      </div>
+      <button class="dash-add-btn" onclick="openAddPetModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Pet
+      </button>
+    </div>
+
+    <!-- Plan Banner (free users) -->
+    <div class="plan-banner" id="planBanner" style="display:none">
+      <div class="plan-banner-text">
+        <h3>Upgrade to Essential</h3>
+        <p>Unlock medical timeline, KCI tagging & unlimited pets</p>
+      </div>
+      <button class="plan-banner-btn" onclick="showTab('subscription')">Upgrade — ₹49/mo</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="sc-label">Total Pets</div>
+        <div class="sc-value" id="statPets">—</div>
+        <div class="sc-badge ok" id="statPetsLabel">Loading...</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Vaccines Logged</div>
+        <div class="sc-value" id="statVaccines">—</div>
+        <div class="sc-badge ok">All Records</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">QR Scans</div>
+        <div class="sc-value" id="statScans">—</div>
+        <div class="sc-badge ok">Total</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Upcoming Events</div>
+        <div class="sc-value" id="statUpcoming">—</div>
+        <div class="sc-badge warn" id="upcomingBadge">Next 30 days</div>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="dash-grid">
+      <!-- Pets List -->
+      <div class="dash-card">
+        <div class="dash-card-title">
+          My Pets
+          <a href="#" onclick="showTab('pets');return false">View all →</a>
+        </div>
+        <div id="overviewPetsList">
+          <div style="padding:12px 0"><div class="skeleton" style="height:60px;border-radius:12px;margin-bottom:10px"></div><div class="skeleton" style="height:60px;border-radius:12px"></div></div>
+        </div>
+      </div>
+
+      <!-- Upcoming Events -->
+      <div class="dash-card">
+        <div class="dash-card-title">Upcoming Reminders</div>
+        <div id="upcomingList">
+          <div class="skeleton" style="height:20px;margin-bottom:8px"></div>
+          <div class="skeleton" style="height:20px;margin-bottom:8px"></div>
+          <div class="skeleton" style="height:20px"></div>
+        </div>
+
+        <!-- QR Activity -->
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+          <div class="dash-card-title" style="margin-bottom:8px">QR Scan Activity <span style="font-size:11px;color:var(--text3);font-weight:400">(last 7 days)</span></div>
+          <div class="scan-bar" id="scanBar">
+            <div class="scan-bar-item skeleton" style="height:40px"></div>
+            <div class="scan-bar-item skeleton" style="height:30px"></div>
+            <div class="scan-bar-item skeleton" style="height:50px"></div>
+            <div class="scan-bar-item skeleton" style="height:20px"></div>
+            <div class="scan-bar-item skeleton" style="height:45px"></div>
+            <div class="scan-bar-item skeleton" style="height:35px"></div>
+            <div class="scan-bar-item skeleton" style="height:60px"></div>
+          </div>
+          <div class="scan-labels" id="scanLabels"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PETS TAB ═══ -->
+  <div id="tab-pets" style="display:none">
+    <div class="dash-top">
+      <div>
+        <div class="dash-greeting">My Pets</div>
+        <div class="dash-date">All registered pets</div>
+      </div>
+      <button class="dash-add-btn" onclick="openAddPetModal()">+ Add Pet</button>
+    </div>
+    <div id="petsList"></div>
+  </div>
+
+  <!-- ═══ MEDICAL TAB ═══ -->
+  <div id="tab-medical" style="display:none">
+    <div class="dash-top">
+      <div>
+        <div class="dash-greeting">Medical Records</div>
+        <div class="dash-date">Full health timeline</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <select id="petSelector" onchange="loadMedical(this.value)" style="padding:9px 14px;border:1.5px solid var(--border);border-radius:100px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);cursor:pointer;outline:none">
+          <option value="">Select a pet...</option>
+        </select>
+        <button class="dash-add-btn" onclick="openAddRecordModal()">+ Add Record</button>
+      </div>
+    </div>
+    <div id="medicalContent">
+      <div class="empty-state"><div class="emoji">🐾</div><p>Select a pet above to view their medical history</p></div>
+    </div>
+  </div>
+
+  <!-- ═══ NOTIFICATIONS TAB ═══ -->
+  <div id="tab-notifications" style="display:none">
+    <div class="dash-top">
+      <div>
+        <div class="dash-greeting">Notifications</div>
+        <div class="dash-date">Your activity updates</div>
+      </div>
+      <button class="dash-add-btn" onclick="markAllRead()" style="background:var(--bg2);color:var(--text2);box-shadow:none">Mark all read</button>
+    </div>
+    <div id="notificationsList"></div>
+  </div>
+
+  <!-- ═══ SUBSCRIPTION TAB ═══ -->
+  <div id="tab-subscription" style="display:none">
+    <div class="dash-top">
+      <div>
+        <div class="dash-greeting">Subscription</div>
+        <div class="dash-date">Manage your plan</div>
+      </div>
+    </div>
+    <div id="subscriptionContent"></div>
+  </div>
+
+</main>
+</div>
+
+<!-- ═══ QR CODE MODAL ═══ -->
+<div class="modal-overlay" id="qrModal" onclick="closeQRModal(event)">
+  <div class="modal-box" style="position:relative">
+    <button class="modal-close" onclick="closeQRModal()">✕</button>
+    <div class="modal-title" id="qrPetName">QR Code</div>
+    <div class="modal-sub">Scan to view <span id="qrPetNameSub">your pet</span>'s public profile</div>
+    <div class="qr-img"><img id="qrImage" src="" alt="QR Code"></div>
+    <div class="qr-url" id="qrUrl"></div>
+    <div class="modal-btn-row">
+      <button class="modal-btn btn-primary-sm" onclick="downloadQR()">📥 Download</button>
+      <button class="modal-btn btn-ghost-sm" onclick="copyQRLink()">🔗 Copy Link</button>
+      <button class="modal-btn btn-ghost-sm" onclick="closeQRModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADD PET MODAL ═══ -->
+<div class="modal-overlay add-pet-modal" id="addPetModal" onclick="closeAddPetModal(event)">
+  <div class="modal-box" style="position:relative;text-align:left">
+    <button class="modal-close" onclick="closeAddPetModal()">✕</button>
+    <div class="modal-title">Add a New Pet</div>
+    <div class="modal-sub" style="text-align:left">Your pet will get a QR code automatically 🎉</div>
+    <div class="error-msg" id="addPetError"></div>
+    <div class="form-row-2">
+      <div class="form-field">
+        <label>Pet Name *</label>
+        <input type="text" id="newPetName" placeholder="Bruno">
+      </div>
+      <div class="form-field">
+        <label>Species *</label>
+        <select id="newPetSpecies">
+          <option value="dog">🐕 Dog</option>
+          <option value="cat">🐈 Cat</option>
+          <option value="bird">🦜 Bird</option>
+          <option value="rabbit">🐰 Rabbit</option>
+          <option value="other">🐾 Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-field">
+        <label>Breed</label>
+        <input type="text" id="newPetBreed" placeholder="Labrador">
+      </div>
+      <div class="form-field">
+        <label>Gender</label>
+        <select id="newPetGender">
+          <option value="">Not specified</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Date of Birth</label>
+      <input type="date" id="newPetDob">
+    </div>
+    <div class="form-field">
+      <label>Bio / Notes</label>
+      <textarea id="newPetBio" rows="2" placeholder="Friendly, loves fetch..." style="resize:none"></textarea>
+    </div>
+    <div class="modal-btn-row" style="justify-content:flex-end">
+      <button class="modal-btn btn-ghost-sm" onclick="closeAddPetModal()">Cancel</button>
+      <button class="modal-btn btn-primary-sm" id="addPetSubmitBtn" onclick="submitAddPet()">Add Pet + Generate QR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADD MEDICAL RECORD MODAL ═══ -->
+<div class="modal-overlay" id="addRecordModal" onclick="closeAddRecordModal(event)">
+  <div class="modal-box" style="position:relative;text-align:left;max-width:520px">
+    <button class="modal-close" onclick="closeAddRecordModal()">✕</button>
+    <div class="modal-title">Add Medical Record</div>
+    <div class="form-field">
+      <label>Record Type</label>
+      <select id="recordType" onchange="toggleRecordFields()">
+        <option value="vaccine">💉 Vaccine</option>
+        <option value="visit">🏥 Vet Visit</option>
+        <option value="deworming">🔄 Deworming</option>
+        <option value="grooming">✂️ Grooming</option>
+        <option value="other">📋 Other</option>
+      </select>
+    </div>
+    <div class="form-row-2">
+      <div class="form-field">
+        <label id="recordTitleLabel">Vaccine Name *</label>
+        <input type="text" id="recordTitle" placeholder="Rabies Vaccine">
+      </div>
+      <div class="form-field">
+        <label id="recordDateLabel">Date *</label>
+        <input type="date" id="recordDate">
+      </div>
+    </div>
+    <div class="form-row-2" id="vetFields">
+      <div class="form-field">
+        <label>Vet Name</label>
+        <input type="text" id="recordVet" placeholder="Dr. Sharma">
+      </div>
+      <div class="form-field">
+        <label>Clinic</label>
+        <input type="text" id="recordClinic" placeholder="PawCare Clinic">
+      </div>
+    </div>
+    <div class="form-field">
+      <label id="nextDueLabel">Next Due Date</label>
+      <input type="date" id="recordNextDue">
+    </div>
+    <div class="form-field">
+      <label>Notes</label>
+      <textarea id="recordNotes" rows="2" style="resize:none" placeholder="Additional notes..."></textarea>
+    </div>
+    <div class="modal-btn-row" style="justify-content:flex-end">
+      <button class="modal-btn btn-ghost-sm" onclick="closeAddRecordModal()">Cancel</button>
+      <button class="modal-btn btn-primary-sm" id="addRecordSubmitBtn" onclick="submitAddRecord()">Save Record</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let dashData = null;
+let currentPetId = null;
+let currentQRData = null;
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+async function init() {
+  // Auth check
+  try {
+    const r = await fetch('/auth/me', { credentials: 'include' });
+    if (!r.ok) { window.location.href = '/login.html'; return; }
+  } catch { window.location.href = '/login.html'; return; }
+
+  // Date/greeting
+  const now = new Date();
+  const hr = now.getHours();
+  const greeting = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greetingText').textContent = greeting + '! 🐾';
+  document.getElementById('dateText').textContent = now.toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // Welcome banner
+  if (new URLSearchParams(window.location.search).get('welcome')) {
+    document.getElementById('welcomeBanner').style.display = 'block';
+    setTimeout(() => document.getElementById('welcomeBanner').style.display = 'none', 6000);
+  }
+
+  await loadDashboard();
+}
+
+async function loadDashboard() {
+  try {
+    const r = await fetch('/api/dashboard/summary', { credentials: 'include' });
+    if (!r.ok) { window.location.href = '/login.html'; return; }
+    dashData = await r.json();
+    renderDashboard(dashData);
+  } catch (err) {
+    console.error('Dashboard load error:', err);
+  }
+}
+
+function renderDashboard(data) {
+  const { user, stats, pets, upcoming, scan_activity, notifications } = data;
+
+  // User avatar
+  const initials = user.name ? user.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase() : '?';
+  document.getElementById('userAvatar').textContent = initials;
+
+  // Stats
+  document.getElementById('statPets').textContent = stats.total_pets;
+  document.getElementById('statPetsLabel').textContent = `${user.plan || 'Free'} plan`;
+  document.getElementById('statVaccines').textContent = stats.total_vaccines;
+  document.getElementById('statScans').textContent = stats.total_scans;
+  document.getElementById('statUpcoming').textContent = stats.upcoming_count;
+
+  // Plan banner
+  if (user.plan === 'free') document.getElementById('planBanner').style.display = 'flex';
+
+  // Notifications badge
+  if (stats.unread_notifications > 0) {
+    const c = stats.unread_notifications;
+    document.getElementById('notifCount').textContent = c; document.getElementById('notifCount').style.display = 'inline';
+    document.getElementById('sidebarNotifBadge').textContent = c; document.getElementById('sidebarNotifBadge').style.display = 'flex';
+  }
+
+  // Sidebar pet quick card
+  if (pets.length > 0) {
+    const p = pets[0];
+    currentPetId = p.id;
+    document.getElementById('sidebarPetCard').style.display = 'block';
+    document.getElementById('sidebarPetName').textContent = p.name;
+    document.getElementById('sidebarPetBreed').textContent = p.breed || p.species;
+    document.getElementById('sidebarPetEmoji').textContent = p.species==='dog'?'🐕':p.species==='cat'?'🐈':'🐾';
+    document.getElementById('sidebarQRBtn').onclick = () => openQRModal(p.id, p.name);
+  }
+
+  // Render pets in overview
+  renderPetsOverview(pets);
+
+  // Render pets in pets tab
+  renderPetsTab(pets);
+
+  // Populate pet selector in medical tab
+  const sel = document.getElementById('petSelector');
+  sel.innerHTML = '<option value="">Select a pet...</option>';
+  pets.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id; opt.textContent = p.name;
+    sel.appendChild(opt);
+  });
+
+  // Upcoming
+  renderUpcoming(upcoming);
+
+  // Scan activity chart
+  renderScanActivity(scan_activity);
+
+  // Notifications
+  renderNotifications(notifications);
+
+  // Subscription
+  renderSubscription(user);
+}
+
+function renderPetsOverview(pets) {
+  const el = document.getElementById('overviewPetsList');
+  if (!pets.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">🐾</div><p>No pets yet. Add your first pet!</p><button class="dash-add-btn" style="margin:12px auto 0" onclick="openAddPetModal()">+ Add Pet</button></div>`;
+    return;
+  }
+  el.innerHTML = pets.slice(0,3).map(p => `
+    <div class="pet-card" onclick="openQRModal('${p.id}','${p.name}')">
+      <div class="pet-avatar">${p.species==='dog'?'🐕':p.species==='cat'?'🐈':p.species==='bird'?'🦜':'🐾'}</div>
+      <div>
+        <div class="pet-name">${p.name}</div>
+        <div class="pet-breed">${p.breed||p.species}</div>
+        <div class="pet-stats">
+          <span class="pet-stat">💉 ${p.vaccines||0}</span>
+          <span class="pet-stat">🏥 ${p.visits||0}</span>
+          <span class="pet-stat">📱 ${p.scans||0} scans</span>
+        </div>
+      </div>
+      <div class="pet-actions" onclick="event.stopPropagation()">
+        <button class="pet-action-btn btn-qr" onclick="openQRModal('${p.id}','${p.name}')">📱 QR</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderPetsTab(pets) {
+  const el = document.getElementById('petsList');
+  if (!pets.length) {
+    el.innerHTML = `<div class="empty-state" style="padding:80px 20px"><div class="emoji">🐾</div><p>No pets registered yet</p><button class="dash-add-btn" style="margin:16px auto 0" onclick="openAddPetModal()">+ Add Your First Pet</button></div>`;
+    return;
+  }
+  el.innerHTML = pets.map(p => `
+    <div class="pet-card" style="margin-bottom:12px;cursor:default">
+      <div class="pet-avatar" style="width:56px;height:56px;font-size:28px">${p.species==='dog'?'🐕':p.species==='cat'?'🐈':p.species==='bird'?'🦜':'🐾'}</div>
+      <div style="flex:1">
+        <div class="pet-name" style="font-size:16px">${p.name} ${p.is_lost?'<span style="background:var(--danger);color:white;font-size:10px;padding:2px 8px;border-radius:100px;margin-left:6px">LOST</span>':''}</div>
+        <div class="pet-breed">${p.breed||''}${p.breed&&p.species?' · ':''}${p.species}</div>
+        <div class="pet-stats" style="gap:14px">
+          <span class="pet-stat">💉 ${p.vaccines||0} vaccines</span>
+          <span class="pet-stat">🏥 ${p.visits||0} visits</span>
+          <span class="pet-stat">📄 ${p.documents||0} docs</span>
+          <span class="pet-stat">📱 ${p.scans||0} QR scans</span>
+          ${p.next_vaccine_due ? `<span class="pet-stat" style="color:var(--warn)">⚠️ Vaccine due ${new Date(p.next_vaccine_due).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>`:''}
+        </div>
+      </div>
+      <div class="pet-actions">
+        <button class="pet-action-btn btn-qr" onclick="openQRModal('${p.id}','${p.name}')">📱 QR Code</button>
+        <button class="pet-action-btn btn-edit" onclick="loadMedical('${p.id}');showTab('medical')">📋 Records</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderUpcoming(upcoming) {
+  const el = document.getElementById('upcomingList');
+  if (!upcoming.length) {
+    el.innerHTML = `<div style="color:var(--text3);font-size:13px;text-align:center;padding:16px 0">✅ No upcoming events in the next 30 days</div>`;
+    return;
+  }
+  el.innerHTML = upcoming.slice(0,5).map(u => {
+    const due = new Date(u.due_date);
+    const days = Math.ceil((due - new Date()) / (1000*60*60*24));
+    const urgent = days <= 7;
+    return `
+    <div class="upcoming-item">
+      <div class="upcoming-dot ${urgent?'dot-warn':'dot-ok'}"></div>
+      <div>
+        <div class="upcoming-title">${u.title}</div>
+        <div class="upcoming-meta">${u.pet_name} · ${u.type}</div>
+      </div>
+      <div class="upcoming-date ${urgent?'':''}">
+        ${days === 0 ? '<span style="color:var(--danger);font-weight:700">Today</span>' : days === 1 ? '<span style="color:var(--warn)">Tomorrow</span>' : `${days}d`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderScanActivity(activity) {
+  const bar = document.getElementById('scanBar');
+  const labels = document.getElementById('scanLabels');
+  if (!activity.length) { bar.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:10px 0">No scan data yet</div>'; return; }
+
+  const maxScans = Math.max(...activity.map(a => parseInt(a.scans)), 1);
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  // Fill last 7 days
+  const last7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const found = activity.find(a => a.date === dateStr);
+    last7.push({ date: dateStr, scans: found ? parseInt(found.scans) : 0, label: days[d.getDay()] });
+  }
+
+  bar.innerHTML = last7.map(d => {
+    const pct = Math.max((d.scans / maxScans) * 100, 4);
+    return `<div class="scan-bar-item" style="height:${pct}%" title="${d.scans} scans on ${d.date}"></div>`;
+  }).join('');
+  labels.innerHTML = last7.map(d => `<div class="scan-label">${d.label}</div>`).join('');
+}
+
+function renderNotifications(notifs) {
+  const el = document.getElementById('notificationsList');
+  if (!notifs.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">🔔</div><p>All caught up! No new notifications.</p></div>`;
+    return;
+  }
+  el.innerHTML = notifs.map(n => `
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:16px;background:${n.is_read?'var(--surface)':'var(--teal-wash)'};border:1px solid ${n.is_read?'var(--border)':'var(--teal-mid)'};border-radius:14px;margin-bottom:10px;cursor:pointer" onclick="markRead('${n.id}',this)">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${n.type==='success'?'✅':n.type==='warning'?'⚠️':'ℹ️'}</div>
+      <div style="flex:1">
+        <div style="font-size:13.5px;font-weight:${n.is_read?'500':'700'};color:var(--text)">${n.title}</div>
+        ${n.message?`<div style="font-size:12.5px;color:var(--text2);margin-top:3px">${n.message}</div>`:''}
+        <div style="font-size:11px;color:var(--text3);margin-top:5px">${new Date(n.created_at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      ${!n.is_read?'<div style="width:8px;height:8px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:4px"></div>':''}
+    </div>
+  `).join('');
+}
+
+function renderSubscription(user) {
+  const el = document.getElementById('subscriptionContent');
+  const plan = user.plan || 'free';
+  const expiry = user.plan_expires_at ? new Date(user.plan_expires_at).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}) : null;
+  
+  el.innerHTML = `
+    <div class="dash-card" style="margin-bottom:18px">
+      <div class="dash-card-title">Current Plan</div>
+      <div style="display:flex;align-items:center;gap:14px;padding:16px;background:var(--bg);border-radius:12px;margin-bottom:16px">
+        <div style="font-size:32px">${plan==='pro'?'⭐':plan==='essential'?'🚀':'🆓'}</div>
+        <div>
+          <div style="font-size:20px;font-weight:800;color:var(--text);font-family:'Syne',sans-serif">${plan.toUpperCase()} PLAN</div>
+          <div style="font-size:13px;color:var(--text2)">${expiry?`Active until ${expiry}`:'Free forever'}</div>
+        </div>
+      </div>
+      ${plan==='free'?`
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:20px">Upgrade to unlock unlimited pets, medical timeline, KCI tagging, and more.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div style="border:1.5px solid var(--teal);border-radius:16px;padding:24px;text-align:center">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px">ESSENTIAL</div>
+          <div style="font-size:36px;font-weight:800;color:var(--text);font-family:'Syne',sans-serif">₹49</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:16px">per month</div>
+          <button style="width:100%;padding:11px;background:var(--teal);color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px" onclick="initiatePayment('essential_monthly')">Upgrade Now</button>
+        </div>
+        <div style="border:1.5px solid var(--border);border-radius:16px;padding:24px;text-align:center">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px">PRO</div>
+          <div style="font-size:36px;font-weight:800;color:var(--text);font-family:'Syne',sans-serif">₹99</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:16px">per month</div>
+          <button style="width:100%;padding:11px;background:var(--bg2);color:var(--text);border:1.5px solid var(--border);border-radius:10px;font-weight:700;cursor:pointer;font-size:13px" onclick="initiatePayment('pro_monthly')">Upgrade Now</button>
+        </div>
+      </div>` : `<div style="background:var(--teal-wash);border:1px solid var(--teal-mid);border-radius:12px;padding:14px;text-align:center;color:var(--teal2);font-weight:600">✅ You're on the ${plan} plan. Enjoy all features!</div>`}
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════
+function showTab(tab) {
+  ['overview','pets','medical','notifications','subscription'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('[onclick*="showTab"]').forEach(l => {
+    if (l.getAttribute('onclick')?.includes(`'${tab}'`)) l.classList.add('active');
+  });
+}
+
+// ═══════════════════════════════════════════
+// QR MODAL
+// ═══════════════════════════════════════════
+async function openQRModal(petId, petName) {
+  try {
+    const r = await fetch(`/api/pets/${petId}/qr`, { credentials: 'include' });
+    const data = await r.json();
+    currentQRData = data;
+    document.getElementById('qrPetName').textContent = petName + "'s QR Code";
+    document.getElementById('qrPetNameSub').textContent = petName;
+    document.getElementById('qrImage').src = data.qr_code;
+    document.getElementById('qrUrl').textContent = data.public_url;
+    document.getElementById('qrModal').classList.add('open');
+  } catch (err) { alert('Failed to load QR code.'); }
+}
+
+function closeQRModal(e) {
+  if (!e || e.target === document.getElementById('qrModal')) {
+    document.getElementById('qrModal').classList.remove('open');
+  }
+}
+
+function downloadQR() {
+  if (!currentQRData) return;
+  const a = document.createElement('a');
+  a.href = currentQRData.qr_code;
+  a.download = 'swap-pet-qr.png';
+  a.click();
+}
+
+function copyQRLink() {
+  if (!currentQRData) return;
+  navigator.clipboard.writeText(currentQRData.public_url)
+    .then(() => alert('Link copied to clipboard!'))
+    .catch(() => prompt('Copy this link:', currentQRData.public_url));
+}
+
+// ═══════════════════════════════════════════
+// ADD PET MODAL
+// ═══════════════════════════════════════════
+function openAddPetModal() { document.getElementById('addPetModal').classList.add('open'); }
+function closeAddPetModal(e) {
+  if (!e || e.target === document.getElementById('addPetModal')) {
+    document.getElementById('addPetModal').classList.remove('open');
+  }
+}
+
+async function submitAddPet() {
+  const btn = document.getElementById('addPetSubmitBtn');
+  const err = document.getElementById('addPetError');
+  const name = document.getElementById('newPetName').value.trim();
+  if (!name) { err.textContent = 'Pet name is required.'; err.style.display='block'; return; }
+  err.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Adding...';
+  try {
+    const r = await fetch('/api/pets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        name,
+        species: document.getElementById('newPetSpecies').value,
+        breed: document.getElementById('newPetBreed').value.trim(),
+        gender: document.getElementById('newPetGender').value,
+        date_of_birth: document.getElementById('newPetDob').value || null,
+        bio: document.getElementById('newPetBio').value.trim(),
+      })
+    });
+    const data = await r.json();
+    if (!r.ok) { err.textContent = data.error; err.style.display='block'; btn.disabled=false; btn.textContent='Add Pet + Generate QR'; return; }
+    document.getElementById('addPetModal').classList.remove('open');
+    await loadDashboard();
+    btn.disabled = false; btn.textContent = 'Add Pet + Generate QR';
+    if (data.pet) openQRModal(data.pet.id, data.pet.name);
+  } catch { err.textContent = 'Failed to add pet.'; err.style.display='block'; btn.disabled=false; btn.textContent='Add Pet + Generate QR'; }
+}
+
+// ═══════════════════════════════════════════
+// MEDICAL RECORDS
+// ═══════════════════════════════════════════
+async function loadMedical(petId) {
+  if (!petId) return;
+  currentPetId = petId;
+  document.getElementById('medicalContent').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3)">Loading...</div>';
+  try {
+    const r = await fetch(`/api/pets/${petId}/timeline`, { credentials: 'include' });
+    const data = await r.json();
+    renderMedical(data);
+  } catch { document.getElementById('medicalContent').innerHTML = '<div class="empty-state"><div class="emoji">❌</div><p>Failed to load records</p></div>'; }
+}
+
+function renderMedical({ vaccines, vet_visits, medical_records }) {
+  const all = [
+    ...vaccines.map(v => ({ ...v, _type: 'vaccine', _date: v.administered_on, _title: v.vaccine_name, _sub: `${v.vet_name||''}${v.clinic_name?' · '+v.clinic_name:''}`, _icon: '💉' })),
+    ...vet_visits.map(v => ({ ...v, _type: 'visit', _date: v.visit_date, _title: v.reason||'Vet Visit', _sub: `${v.vet_name||''}${v.clinic_name?' · '+v.clinic_name:''}`, _icon: '🏥' })),
+    ...medical_records.map(v => ({ ...v, _type: 'record', _date: v.date_of, _title: v.title, _sub: v.record_type, _icon: v.record_type==='deworming'?'🔄':v.record_type==='grooming'?'✂️':'📋' })),
+  ].sort((a,b) => new Date(b._date) - new Date(a._date));
+
+  if (!all.length) {
+    document.getElementById('medicalContent').innerHTML = `<div class="empty-state"><div class="emoji">📋</div><p>No medical records yet. Add your first record!</p><button class="dash-add-btn" style="margin:12px auto 0" onclick="openAddRecordModal()">+ Add Record</button></div>`;
+    return;
+  }
+
+  document.getElementById('medicalContent').innerHTML = `
+    <div class="dash-card">
+      <div class="dash-card-title">Health Timeline <span style="font-size:12px;color:var(--text3);font-weight:400">${all.length} records</span></div>
+      ${all.map(r => `
+        <div class="timeline-item">
+          <div class="tl-icon ${r._type}">${r._icon}</div>
+          <div style="flex:1">
+            <div class="tl-title">${r._title}</div>
+            <div class="tl-meta">${r._sub || r._type}</div>
+            ${r.next_due_date||r.next_due_date ? `<div style="font-size:11px;color:var(--warn);margin-top:2px">📅 Next: ${new Date(r.next_due_date||r.next_due_date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>` : ''}
+          </div>
+          <div class="tl-date">${new Date(r._date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+// ADD RECORD MODAL
+function openAddRecordModal() {
+  if (!currentPetId) { alert('Please select a pet first.'); return; }
+  document.getElementById('addRecordModal').classList.add('open');
+  document.getElementById('recordDate').value = new Date().toISOString().split('T')[0];
+}
+function closeAddRecordModal(e) {
+  if (!e || e.target === document.getElementById('addRecordModal')) document.getElementById('addRecordModal').classList.remove('open');
+}
+
+async function submitAddRecord() {
+  const btn = document.getElementById('addRecordSubmitBtn');
+  const type = document.getElementById('recordType').value;
+  const title = document.getElementById('recordTitle').value.trim();
+  const date = document.getElementById('recordDate').value;
+  if (!title || !date) { alert('Title and date are required.'); return; }
+
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    let endpoint, body;
+    if (type === 'vaccine') {
+      endpoint = `/api/medical/pets/${currentPetId}/vaccines`;
+      body = { vaccine_name: title, administered_on: date, next_due_date: document.getElementById('recordNextDue').value||null, vet_name: document.getElementById('recordVet').value.trim(), clinic_name: document.getElementById('recordClinic').value.trim(), notes: document.getElementById('recordNotes').value.trim() };
+    } else if (type === 'visit') {
+      endpoint = `/api/medical/pets/${currentPetId}/visits`;
+      body = { visit_date: date, reason: title, follow_up_date: document.getElementById('recordNextDue').value||null, vet_name: document.getElementById('recordVet').value.trim(), clinic_name: document.getElementById('recordClinic').value.trim(), diagnosis: document.getElementById('recordNotes').value.trim() };
+    } else {
+      endpoint = `/api/medical/pets/${currentPetId}/records`;
+      body = { record_type: type, title, date_of: date, next_due_date: document.getElementById('recordNextDue').value||null, description: document.getElementById('recordNotes').value.trim() };
+    }
+
+    const r = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body) });
+    if (!r.ok) { const d = await r.json(); alert(d.error||'Failed'); btn.disabled=false; btn.textContent='Save Record'; return; }
+    document.getElementById('addRecordModal').classList.remove('open');
+    btn.disabled=false; btn.textContent='Save Record';
+    loadMedical(currentPetId);
+    loadDashboard();
+  } catch { alert('Failed to save record.'); btn.disabled=false; btn.textContent='Save Record'; }
+}
+
+// ═══════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════
+async function markRead(id, el) {
+  await fetch(`/api/dashboard/notifications/${id}/read`, { method:'PUT', credentials:'include' });
+  el.style.background = 'var(--surface)';
+  el.style.borderColor = 'var(--border)';
+}
+async function markAllRead() {
+  await fetch('/api/dashboard/notifications/read-all', { method:'PUT', credentials:'include' });
+  document.getElementById('notifCount').style.display = 'none';
+  document.getElementById('sidebarNotifBadge').style.display = 'none';
+  await loadDashboard();
+}
+
+// ═══════════════════════════════════════════
+// PAYMENTS
+// ═══════════════════════════════════════════
+async function initiatePayment(planKey) {
+  try {
+    const r = await fetch('/api/payments/create-order', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      credentials: 'include', body: JSON.stringify({ plan_key: planKey })
+    });
+    const data = await r.json();
+    if (!r.ok) { alert(data.error || 'Payment not available yet. Razorpay keys not configured.'); return; }
+
+    const options = {
+      key: data.key_id, amount: data.amount, currency: data.currency,
+      name: 'swaP', description: `${data.plan_name} Plan`,
+      image: '/favicon.ico',
+      order_id: data.order_id,
+      handler: async (response) => {
+        const vr = await fetch('/api/payments/verify', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          credentials:'include',
+          body: JSON.stringify({ ...response, plan_key: planKey })
+        });
+        const vd = await vr.json();
+        if (vd.success) { alert('🎉 ' + vd.message); loadDashboard(); showTab('overview'); }
+        else alert('Payment verification failed. Contact support.');
+      },
+      theme: { color: '#4DB8AA' },
+      prefill: { name: dashData?.user?.name, email: dashData?.user?.email }
+    };
+    const rzp = new Razorpay(options);
+    rzp.open();
+  } catch { alert('Payment service not available. Razorpay keys not configured yet.'); }
+}
+
+// ═══════════════════════════════════════════
+// LOGOUT
+// ═══════════════════════════════════════════
+async function handleLogout() {
+  try {
+    await fetch('/auth/logout', { method:'POST', credentials:'include' });
+  } catch {}
+  window.location.href = '/login.html';
+}
+
+// ═══════════════════════════════════════════
+// START
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+<!-- Load Razorpay SDK (ready for when keys are added) -->
+<script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
+</body>
+</html>
