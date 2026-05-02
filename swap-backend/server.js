@@ -10,7 +10,6 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const db = require('./utils/db');
-const { startReminderJob } = require('./utils/reminders');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -129,7 +128,6 @@ app.use('/api/pets', require('./routes/pets'));
 app.use('/api/medical', require('./routes/medical'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/payments', require('./routes/payments'));
-app.use('/api/documents', require('./routes/documents'));
 
 // ── PUBLIC PET PROFILE (QR scan destination) ──────────────
 app.get('/pet/:token', async (req, res) => {
@@ -314,12 +312,7 @@ app.listen(PORT, () => {
   console.log(`   • API:     http://localhost:${PORT}/api/health`);
   console.log(`   • DB:      ${process.env.DATABASE_URL ? '✅ Neon configured' : '❌ DATABASE_URL not set'}`);
   console.log(`   • Google:  ${process.env.GOOGLE_CLIENT_ID ? '✅ Configured' : '⚠️  Not configured'}`);
-  console.log(`   • Razorpay:${process.env.RAZORPAY_KEY_ID ? '✅ Configured' : '⚠️  Not configured (add later)'}`);
-  console.log(`   • Cloudinary:${process.env.CLOUDINARY_CLOUD_NAME ? '✅ Configured' : '⚠️  Not configured (set CLOUDINARY_* vars)'}`);
-  console.log(`   • Email:   ${process.env.SMTP_HOST ? '✅ Configured' : '⚠️  Not configured (set SMTP_* vars)'}\n`);
-
-  // Start daily vaccine reminder cron
-  startReminderJob();
+  console.log(`   • Razorpay:${process.env.RAZORPAY_KEY_ID ? '✅ Configured' : '⚠️  Not configured (add later)'}\n`);
 });
 
 module.exports = app;

@@ -1,18 +1,3 @@
 .env
-# Environment variables — NEVER commit these
-.env
-.env.local
-.env.production
-
-# Node
 node_modules/
-npm-debug.log*
-
-# Uploads (local dev only — files go to Cloudinary in prod)
-swap-backend/uploads/
-
-# OS
-.DS_Store
-Thumbs.db
-/
 uploads/

@@ -115,19 +115,15 @@ CREATE TABLE IF NOT EXISTS medical_records (
 
 -- ── DOCUMENTS ────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS documents (
-  id                   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  pet_id               UUID NOT NULL REFERENCES pets(id) ON DELETE CASCADE,
-  uploaded_by          UUID REFERENCES users(id),
-  title                VARCHAR(300) NOT NULL,
-  doc_type             VARCHAR(100),                         -- vaccination | medical | id | kci | insurance | other
-  file_url             TEXT NOT NULL,
-  file_size            BIGINT,
-  mime_type            VARCHAR(100),
-  cloudinary_public_id TEXT,
-  linked_vaccine_id    UUID REFERENCES vaccines(id) ON DELETE SET NULL,
-  linked_visit_id      UUID REFERENCES vet_visits(id) ON DELETE SET NULL,
-  is_verified          BOOLEAN DEFAULT FALSE,
-  created_at           TIMESTAMPTZ DEFAULT NOW()
+  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  pet_id          UUID NOT NULL REFERENCES pets(id) ON DELETE CASCADE,
+  uploaded_by     UUID REFERENCES users(id),
+  title           VARCHAR(300) NOT NULL,
+  doc_type        VARCHAR(100),                         -- vaccination | medical | id | kci | insurance | other
+  file_url        TEXT NOT NULL,
+  file_size_bytes BIGINT,
+  is_verified     BOOLEAN DEFAULT FALSE,
+  created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ── SUBSCRIPTIONS / PAYMENTS ─────────────────────────────
