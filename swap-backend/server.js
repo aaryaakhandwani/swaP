@@ -15,9 +15,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
+// ── TRUST PROXY (required for secure cookies on Render) ───
+app.set('trust proxy', 1);
+
 // ── SECURITY MIDDLEWARE ────────────────────────────────────
 app.use(helmet({
-  contentSecurityPolicy: false, // Allow inline scripts for frontend
+  contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
 }));
 
@@ -28,7 +31,7 @@ app.use(cors({
 
 // Rate limiting
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 200,
   message: { error: 'Too many requests. Please try again later.' }
 });
@@ -59,11 +62,12 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'swap-dev-secret-change-in-production',
   resave: false,
   saveUninitialized: false,
+  proxy: true,
   cookie: {
     secure: true,
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    sameSite: 'none',
+    sameSite: 'lax',
   },
   name: 'swap.sid',
 }));
@@ -83,12 +87,10 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       const name = profile.displayName;
       const googleId = profile.id;
       const avatarUrl = profile.photos?.[0]?.value;
-      
-      // Find or create user
+
       let result = await db.query('SELECT * FROM users WHERE google_id = $1 OR email = $2', [googleId, email]);
-      
+
       if (result.rows.length) {
-        // Update Google ID if they signed up via email before
         const user = result.rows[0];
         await db.query(
           'UPDATE users SET google_id = $1, avatar_url = COALESCE(avatar_url, $2), last_login = NOW() WHERE id = $3',
@@ -96,7 +98,6 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         );
         return done(null, user);
       } else {
-        // Create new user via Google
         const newUser = await db.query(`
           INSERT INTO users (name, email, google_id, avatar_url, is_verified, last_login)
           VALUES ($1, $2, $3, $4, TRUE, NOW())
@@ -108,7 +109,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       return done(err, null);
     }
   }));
-  
+
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id, done) => {
     try {
@@ -118,14 +119,13 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       done(err, null);
     }
   });
-  
+
   console.log('✅ Google OAuth configured');
 } else {
   console.log('⚠️  GOOGLE_CLIENT_ID/SECRET not set — Google login disabled');
 }
 
 // ── STATIC FILES (serve frontend) ─────────────────────────
-// Serve your existing HTML/CSS/JS files
 app.use(express.static(path.join(__dirname, '../project')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -145,7 +145,7 @@ app.get('/pet/:token', async (req, res) => {
       JOIN users u ON u.id = p.owner_id
       WHERE p.qr_token = $1 AND p.is_public = TRUE
     `, [req.params.token]);
-    
+
     if (!result.rows.length) {
       return res.status(404).send(`
         <!DOCTYPE html><html><head><title>Pet Not Found — swaP</title>
@@ -160,22 +160,19 @@ app.get('/pet/:token', async (req, res) => {
         </div></body></html>
       `);
     }
-    
+
     const pet = result.rows[0];
-    
-    // Log scan
+
     await db.query(
       'INSERT INTO qr_scans (pet_id, ip_address, user_agent) VALUES ($1, $2, $3)',
       [pet.id, req.ip, req.headers['user-agent']]
     ).catch(console.error);
-    
-    // Get medical data
+
     const [vaccines, visits] = await Promise.all([
       db.query('SELECT * FROM vaccines WHERE pet_id = $1 ORDER BY administered_on DESC LIMIT 5', [pet.id]),
       db.query('SELECT * FROM vet_visits WHERE pet_id = $1 ORDER BY visit_date DESC LIMIT 3', [pet.id]),
     ]);
-    
-    // Render public pet profile page
+
     res.send(renderPublicPetProfile(pet, vaccines.rows, visits.rows));
   } catch (err) {
     console.error('QR scan error:', err);
@@ -184,10 +181,10 @@ app.get('/pet/:token', async (req, res) => {
 });
 
 function renderPublicPetProfile(pet, vaccines, visits) {
-  const age = pet.date_of_birth 
+  const age = pet.date_of_birth
     ? Math.floor((Date.now() - new Date(pet.date_of_birth)) / (365.25 * 24 * 3600 * 1000))
     : null;
-  
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -235,7 +232,7 @@ function renderPublicPetProfile(pet, vaccines, visits) {
     <div class="verified-badge">✓ swaP Verified</div>
     ${pet.is_lost ? '<div class="lost-badge">🚨 LOST PET — Please contact owner</div>' : ''}
   </div>
-  
+
   <div class="card">
     <div class="info-grid">
       <div class="info-item"><label>Species</label><span>${pet.species?.charAt(0).toUpperCase() + pet.species?.slice(1) || '—'}</span></div>
@@ -247,7 +244,7 @@ function renderPublicPetProfile(pet, vaccines, visits) {
     </div>
     ${pet.bio ? `<p style="font-size:14px;color:#5A6677;line-height:1.7;border-top:1px solid #E2E8EF;padding-top:16px">${pet.bio}</p>` : ''}
   </div>
-  
+
   <div style="margin:16px">
     ${vaccines.length ? `
     <div class="section">
@@ -262,7 +259,7 @@ function renderPublicPetProfile(pet, vaccines, visits) {
         </div>
       `).join('')}
     </div>` : ''}
-    
+
     ${visits.length ? `
     <div class="section">
       <div class="section-title">🏥 Recent Vet Visits</div>
@@ -277,7 +274,7 @@ function renderPublicPetProfile(pet, vaccines, visits) {
       `).join('')}
     </div>` : ''}
   </div>
-  
+
   <div class="footer">
     <p>This pet is registered on</p>
     <a href="/">swaP — India's First Pet Intelligence Platform</a>
@@ -292,9 +289,9 @@ function renderPublicPetProfile(pet, vaccines, visits) {
 app.get('/api/health', async (req, res) => {
   try {
     await db.query('SELECT 1');
-    res.json({ 
-      status: 'ok', 
-      db: 'connected', 
+    res.json({
+      status: 'ok',
+      db: 'connected',
       google_auth: !!process.env.GOOGLE_CLIENT_ID,
       razorpay: !!process.env.RAZORPAY_KEY_ID,
     });
