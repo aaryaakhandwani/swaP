@@ -48,15 +48,22 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ── SESSIONS ───────────────────────────────────────────────
+const pgSession = require('connect-pg-simple')(session);
+
 app.use(session({
+  store: new pgSession({
+    conString: process.env.DATABASE_URL,
+    tableName: 'session',
+    createTableIfMissing: true,
+  }),
   secret: process.env.SESSION_SECRET || 'swap-dev-secret-change-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: 'none',
   },
   name: 'swap.sid',
 }));
