@@ -89,14 +89,9 @@ function handleLogin(e) {
   }
 }
 
-function handleLogout() {
-  const stored = localStorage.getItem('swap-user');
-  if (stored) {
-    const user = JSON.parse(stored);
-    user.loggedIn = false;
-    localStorage.setItem('swap-user', JSON.stringify(user));
-  }
-  window.location.href = 'index.html';
+async function handleLogout() {
+  await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+  window.location.href = 'login.html';
 }
 
 // ── DASHBOARD GUARD ──

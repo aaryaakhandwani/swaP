@@ -555,18 +555,25 @@ body { overflow-x: hidden; }
 
 <script src="script.js"></script>
 <script>
-// Auth check
-const user = requireAuth();
-if (user) {
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-  const firstName = user.name ? user.name.split(' ')[0] : 'there';
-  document.getElementById('greeting-text').textContent = `${greeting}, ${firstName}`;
-  document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-  document.getElementById('nav-user-label').textContent = `${user.email}`;
-  const initials = firstName.charAt(0).toUpperCase();
-  document.getElementById('user-avatar').textContent = initials;
+// Auth check — use backend session instead of localStorage
+async function checkAuth() {
+  try {
+    const res = await fetch('/auth/me', { credentials: 'include' });
+    if (!res.ok) { window.location.href = 'login.html'; return; }
+    const data = await res.json();
+    const user = data.user;
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    const firstName = user.name ? user.name.split(' ')[0] : 'there';
+    document.getElementById('greeting-text').textContent = `${greeting}, ${firstName}`;
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    document.getElementById('nav-user-label').textContent = user.email;
+    document.getElementById('user-avatar').textContent = firstName.charAt(0).toUpperCase();
+  } catch(e) {
+    window.location.href = 'login.html';
+  }
 }
+checkAuth();
 </script>
 </body>
 </html>
