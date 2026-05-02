@@ -9,6 +9,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const { Pool } = require('pg');
 const db = require('./utils/db');
 
 const app = express();
@@ -53,11 +54,16 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // ── SESSIONS ───────────────────────────────────────────────
 const pgSession = require('connect-pg-simple')(session);
 
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
 app.use(session({
   store: new pgSession({
-    conString: process.env.DATABASE_URL,
+    pool: pool,
     tableName: 'session',
-    createTableIfMissing: true,
+    createTableIfMissing: false,
   }),
   secret: process.env.SESSION_SECRET || 'swap-dev-secret-change-in-production',
   resave: false,
@@ -135,6 +141,16 @@ app.use('/api/pets', require('./routes/pets'));
 app.use('/api/medical', require('./routes/medical'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/payments', require('./routes/payments'));
+
+// ── DEBUG SESSION ──────────────────────────────────────────
+app.get('/debug-session', (req, res) => {
+  res.json({
+    sessionID: req.sessionID,
+    session: req.session,
+    user: req.user,
+    cookies: req.headers.cookie
+  });
+});
 
 // ── PUBLIC PET PROFILE (QR scan destination) ──────────────
 app.get('/pet/:token', async (req, res) => {
@@ -320,11 +336,3 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
-app.get('/debug-session', (req, res) => {
-  res.json({
-    sessionID: req.sessionID,
-    session: req.session,
-    user: req.user,
-    cookies: req.headers.cookie
-  });
-});
