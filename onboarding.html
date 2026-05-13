@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get Started — swaP</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.onboarding-bg {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.onboarding-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+}
+.onboarding-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 48px 44px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: var(--shadow-lg);
+}
+.onboarding-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+/* Reuse exact card styles from signup.html */
+.user-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.user-type-card {
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 14px;
+  cursor: pointer;
+  transition: all .22s;
+  background: var(--surface);
+  text-align: center;
+}
+.user-type-card:hover { border-color: var(--teal-soft); background: var(--teal-wash); }
+.user-type-card.active { border-color: var(--teal); background: var(--teal-wash); box-shadow: 0 0 0 3px rgba(77,184,170,.08); }
+.utc-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 10px; background: var(--bg2); transition: background .22s;
+}
+.user-type-card.active .utc-icon,
+.user-type-card:hover .utc-icon { background: white; }
+.utc-icon svg { width: 19px; height: 19px; }
+.utc-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.utc-desc { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+.continue-btn {
+  width: 100%; padding: 14px;
+  background: var(--teal); color: #fff;
+  border: none; border-radius: 14px;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all .25s;
+  font-family: 'DM Sans', sans-serif;
+  box-shadow: var(--shadow-teal);
+}
+.continue-btn:hover { background: var(--teal2); transform: translateY(-1px); }
+
+.auth-heading {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 6px;
+  letter-spacing: -.5px;
+}
+.auth-sub {
+  font-size: 14px;
+  color: var(--text2);
+  text-align: center;
+  margin-bottom: 28px;
+  line-height: 1.7;
+}
+
+@media (max-width: 500px) {
+  .onboarding-card { padding: 28px 20px; }
+}
+</style>
+</head>
+<body class="onboarding-bg">
+
+<!-- ══ NAV ══ -->
+<nav class="nav">
+  <a href="index.html" class="logo"><img src="assets/logo-black.png" alt="swaP" class="logo-light" style="height:40px;width:auto;object-fit:contain;display:block;"><img src="assets/logo-white.png" alt="swaP" class="logo-dark" style="height:40px;width:auto;object-fit:contain;display:none;"></a>
+  <div class="nav-right">
+    <button class="theme-toggle" title="Toggle theme"></button>
+  </div>
+</nav>
+
+<!-- ══ ONBOARDING ══ -->
+<div class="onboarding-wrap">
+  <div class="onboarding-card">
+
+    <div class="onboarding-logo">
+      <img src="assets/logo-black.png" alt="swaP" class="logo-light" style="height:44px;width:auto;object-fit:contain;display:block;"><img src="assets/logo-white.png" alt="swaP" class="logo-dark" style="height:44px;width:auto;object-fit:contain;display:none;">
+    </div>
+
+    <div class="auth-heading">Welcome to swaP</div>
+    <div class="auth-sub">Tell us who you are so we can personalise your experience.</div>
+
+    <!-- Category cards — same UI as signup step 1 -->
+    <div class="user-type-grid">
+      <div class="user-type-card active" data-role="parent" onclick="selectCategory(this)">
+        <div class="utc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </div>
+        <div class="utc-name">Pet Parent</div>
+        <div class="utc-desc">Individual owner</div>
+      </div>
+      <div class="user-type-card" data-role="vet" onclick="selectCategory(this)">
+        <div class="utc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <div class="utc-name">Vet Clinic</div>
+        <div class="utc-desc">Veterinary practice</div>
+      </div>
+      <div class="user-type-card" data-role="breeder" onclick="selectCategory(this)">
+        <div class="utc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#3A9E92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        </div>
+        <div class="utc-name">Breeder</div>
+        <div class="utc-desc">Professional breeder</div>
+      </div>
+      <div class="user-type-card" data-role="rwa" onclick="selectCategory(this)">
+        <div class="utc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div class="utc-name">RWA Society</div>
+        <div class="utc-desc">Residential community</div>
+      </div>
+    </div>
+
+    <!-- Continue — NO "Sign up with Google" here -->
+    <button class="continue-btn" id="onboarding-continue" onclick="handleContinue()">Continue →</button>
+
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+let selectedCategory = 'parent';
+
+function selectCategory(el) {
+  document.querySelectorAll('.user-type-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  selectedCategory = el.dataset.role;
+}
+
+function handleContinue() {
+  // Persist selected role and jump straight to step 2
+  sessionStorage.setItem('swap-onboarding-role', selectedCategory);
+  window.location.href = 'signup.html?role=' + encodeURIComponent(selectedCategory) + '&step=2&onboarded=true';
+}
+</script>
+</body>
+</html>

@@ -156,7 +156,10 @@ app.get('/debug-session', (req, res) => {
 app.get('/pet/:token', async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT p.*, u.name AS owner_name
+      SELECT p.*, u.name AS owner_name, u.phone AS owner_phone,
+             u.emergency_contact AS owner_emergency,
+             u.address AS owner_address,
+             u.plan AS owner_plan, u.plan_expires_at AS owner_plan_expires_at
       FROM pets p
       JOIN users u ON u.id = p.owner_id
       WHERE p.qr_token = $1 AND p.is_public = TRUE
@@ -184,22 +187,28 @@ app.get('/pet/:token', async (req, res) => {
       [pet.id, req.ip, req.headers['user-agent']]
     ).catch(console.error);
 
-    const [vaccines, visits] = await Promise.all([
+    const [vaccines, visits, records] = await Promise.all([
       db.query('SELECT * FROM vaccines WHERE pet_id = $1 ORDER BY administered_on DESC LIMIT 5', [pet.id]),
       db.query('SELECT * FROM vet_visits WHERE pet_id = $1 ORDER BY visit_date DESC LIMIT 3', [pet.id]),
+      db.query('SELECT * FROM medical_records WHERE pet_id = $1 ORDER BY date_of DESC LIMIT 5', [pet.id]),
     ]);
 
-    res.send(renderPublicPetProfile(pet, vaccines.rows, visits.rows));
+    res.send(renderPublicPetProfile(pet, vaccines.rows, visits.rows, records.rows));
   } catch (err) {
     console.error('QR scan error:', err);
     res.status(500).send('Error loading pet profile');
   }
 });
 
-function renderPublicPetProfile(pet, vaccines, visits) {
+function renderPublicPetProfile(pet, vaccines, visits, records = []) {
   const age = pet.date_of_birth
     ? Math.floor((Date.now() - new Date(pet.date_of_birth)) / (365.25 * 24 * 3600 * 1000))
     : null;
+
+  // Determine if owner has an active paid plan
+  const plan = (pet.owner_plan || 'free').toLowerCase();
+  const planExpiry = pet.owner_plan_expires_at ? new Date(pet.owner_plan_expires_at) : null;
+  const isPaid = (plan === 'essential' || plan === 'pro') && planExpiry && planExpiry > new Date();
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -222,6 +231,7 @@ function renderPublicPetProfile(pet, vaccines, visits) {
     .lost-badge{display:inline-block;background:#E05555;color:white;font-weight:700;font-size:13px;padding:5px 16px;border-radius:100px;margin-top:12px;animation:pulse 1.5s infinite}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
     .verified-badge{display:inline-block;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:600;padding:4px 12px;border-radius:100px;margin-top:10px}
+    .verified-badge-free{display:inline-block;background:rgba(255,255,255,.12);color:rgba(255,255,255,.75);font-size:12px;font-weight:500;padding:4px 12px;border-radius:100px;margin-top:10px;letter-spacing:.2px}
     .card{background:white;border-radius:20px;padding:24px;margin:0 16px;box-shadow:0 4px 20px rgba(0,0,0,.07);margin-top:-40px;position:relative}
     .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
     .info-item label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#9AAAB8;display:block;margin-bottom:3px}
@@ -236,6 +246,23 @@ function renderPublicPetProfile(pet, vaccines, visits) {
     .footer a{color:#4DB8AA;font-weight:600;text-decoration:none}
     .cta{display:inline-block;background:#4DB8AA;color:white;font-weight:700;font-size:14px;padding:12px 28px;border-radius:100px;text-decoration:none;margin-top:16px;box-shadow:0 6px 24px rgba(77,184,170,.3)}
     .no-data{color:#9AAAB8;font-size:13px;text-align:center;padding:16px}
+    /* ── OWNER CONTACT CARD ── */
+    .contact-card{background:white;border-radius:20px;padding:24px;margin:12px 16px 0;box-shadow:0 4px 20px rgba(0,0,0,.07)}
+    .contact-card .section-title{margin-bottom:16px}
+    .contact-row{display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid #F0F3F7}
+    .contact-row:last-child{border-bottom:none;padding-bottom:0}
+    .contact-icon{width:36px;height:36px;border-radius:10px;background:#E8F6F4;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+    .contact-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#9AAAB8;margin-bottom:2px}
+    .contact-value{font-size:14px;font-weight:600;color:#141C27}
+    .contact-call-btn{margin-left:auto;display:inline-flex;align-items:center;gap:5px;background:#4DB8AA;color:white;font-size:12px;font-weight:700;padding:6px 14px;border-radius:100px;text-decoration:none;white-space:nowrap;transition:background .2s;flex-shrink:0}
+    .contact-call-btn:hover{background:#3A9E92}
+    /* ── MEDICAL DETAILS CARD ── */
+    .medical-card{background:white;border-radius:20px;padding:24px;margin:12px 16px 0;box-shadow:0 4px 20px rgba(0,0,0,.07)}
+    .med-item{padding:12px 0;border-bottom:1px solid #F0F3F7;display:flex;align-items:flex-start;gap:12px}
+    .med-item:last-child{border-bottom:none;padding-bottom:0}
+    .med-item-icon{width:36px;height:36px;border-radius:10px;background:#E8F6F4;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+    .med-item-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#9AAAB8;margin-bottom:2px}
+    .med-item-value{font-size:14px;font-weight:600;color:#141C27;line-height:1.5}
   </style>
 </head>
 <body>
@@ -245,7 +272,10 @@ function renderPublicPetProfile(pet, vaccines, visits) {
     </div>
     <div class="pet-name">${pet.name}</div>
     <div class="pet-breed">${pet.breed || pet.species}${age ? ` • ${age} year${age !== 1 ? 's' : ''} old` : ''}</div>
-    <div class="verified-badge">✓ swaP Verified</div>
+    ${isPaid
+      ? `<div class="verified-badge">✓ Verified by swaP</div>`
+      : `<div class="verified-badge-free">by swaP</div>`
+    }
     ${pet.is_lost ? '<div class="lost-badge">🚨 LOST PET — Please contact owner</div>' : ''}
   </div>
 
@@ -260,6 +290,52 @@ function renderPublicPetProfile(pet, vaccines, visits) {
     </div>
     ${pet.bio ? `<p style="font-size:14px;color:#5A6677;line-height:1.7;border-top:1px solid #E2E8EF;padding-top:16px">${pet.bio}</p>` : ''}
   </div>
+
+  <!-- ── OWNER CONTACT CARD ── -->
+  ${(pet.owner_name || pet.owner_phone || pet.owner_emergency) ? `
+  <div class="contact-card">
+    <div class="section-title">📞 Owner Contact</div>
+    ${pet.owner_name ? `
+    <div class="contact-row">
+      <div class="contact-icon">👤</div>
+      <div>
+        <div class="contact-label">Owner Name</div>
+        <div class="contact-value">${pet.owner_name}</div>
+      </div>
+    </div>` : ''}
+    ${pet.owner_phone ? `
+    <div class="contact-row">
+      <div class="contact-icon">📱</div>
+      <div style="flex:1">
+        <div class="contact-label">Phone Number</div>
+        <div class="contact-value">${pet.owner_phone}</div>
+      </div>
+      <a class="contact-call-btn" href="tel:${pet.owner_phone}">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.59 3.44 2 2 0 0 1 3.56 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.82a16 16 0 0 0 6.28 6.28l1.1-1.1a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Call
+      </a>
+    </div>` : ''}
+    ${pet.owner_emergency ? `
+    <div class="contact-row">
+      <div class="contact-icon">🆘</div>
+      <div style="flex:1">
+        <div class="contact-label">Emergency Contact</div>
+        <div class="contact-value">${pet.owner_emergency}</div>
+      </div>
+      <a class="contact-call-btn" href="tel:${pet.owner_emergency}" style="background:#E05555">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.59 3.44 2 2 0 0 1 3.56 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.82a16 16 0 0 0 6.28 6.28l1.1-1.1a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Call
+      </a>
+    </div>` : ''}
+    ${pet.owner_address ? `
+    <div class="contact-row">
+      <div class="contact-icon">📍</div>
+      <div>
+        <div class="contact-label">Location / Address</div>
+        <div class="contact-value">${pet.owner_address}</div>
+      </div>
+    </div>` : ''}
+  </div>` : ''}
 
   <div style="margin:16px">
     ${vaccines.length ? `
@@ -290,6 +366,45 @@ function renderPublicPetProfile(pet, vaccines, visits) {
       `).join('')}
     </div>` : ''}
   </div>
+
+  <!-- ── MEDICAL DETAILS CARD ── -->
+  ${
+    (() => {
+      const allergies = records.filter(r => r.record_type === 'allergy' || (r.title || '').toLowerCase().includes('allerg'));
+      const notes     = records.filter(r => r.record_type !== 'allergy' && !(r.title || '').toLowerCase().includes('allerg'));
+      const lastVisit = visits.length ? visits[0] : null;
+      const hasContent = lastVisit || notes.length || allergies.length;
+      if (!hasContent) return '';
+      return `
+  <div class="medical-card">
+    <div class="section-title">🩺 Medical Details</div>
+    ${lastVisit ? `
+    <div class="med-item">
+      <div class="med-item-icon">📅</div>
+      <div>
+        <div class="med-item-label">Last Vet Visit</div>
+        <div class="med-item-value">${new Date(lastVisit.visit_date).toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'})}${lastVisit.vet_name ? ` — Dr. ${lastVisit.vet_name}` : ''}${lastVisit.clinic_name ? `, ${lastVisit.clinic_name}` : ''}</div>
+      </div>
+    </div>` : ''}
+    ${allergies.length ? `
+    <div class="med-item">
+      <div class="med-item-icon">⚠️</div>
+      <div>
+        <div class="med-item-label">Allergies</div>
+        <div class="med-item-value">${allergies.map(a => a.title || a.description || '').filter(Boolean).join(', ')}</div>
+      </div>
+    </div>` : ''}
+    ${notes.length ? `
+    <div class="med-item">
+      <div class="med-item-icon">📋</div>
+      <div>
+        <div class="med-item-label">Medical Notes</div>
+        <div class="med-item-value" style="font-weight:500;color:#5A6677;line-height:1.6">${notes.map(n => `<div style="margin-bottom:6px"><strong style="color:#141C27">${n.title||''}</strong>${n.description ? ': ' + n.description : ''}</div>`).join('')}</div>
+      </div>
+    </div>` : ''}
+  </div>`;
+    })()
+  }
 
   <div class="footer">
     <p>This pet is registered on</p>

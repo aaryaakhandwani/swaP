@@ -293,9 +293,10 @@ var plans = {
   free: {
     badge: 'Free',
     name: 'Free Plan',
-    price: '₹0',
-    period: 'forever',
-    btnPrice: 'Free',
+    price: { monthly: '₹0', yearly: '₹0' },
+    period: { monthly: 'forever', yearly: 'forever' },
+    btnPrice: { monthly: 'Free', yearly: 'Free' },
+    planKey: { monthly: 'free', yearly: 'free' },
     features: [
       'Pet registration with documents',
       'Pet profile with QR code',
@@ -305,9 +306,10 @@ var plans = {
   essential: {
     badge: 'Essential',
     name: 'Essential Plan',
-    price: '₹49',
-    period: 'per month',
-    btnPrice: '₹49',
+    price: { monthly: '₹49', yearly: '₹29' },
+    period: { monthly: 'per month', yearly: 'per month, billed yearly' },
+    btnPrice: { monthly: '₹49', yearly: '₹29' },
+    planKey: { monthly: 'essential_monthly', yearly: 'essential_yearly' },
     features: [
       'Everything in Free',
       'Medical timeline',
@@ -317,9 +319,10 @@ var plans = {
   pro: {
     badge: 'Pro',
     name: 'Pro Plan',
-    price: '₹99',
-    period: 'per month',
-    btnPrice: '₹99',
+    price: { monthly: '₹99', yearly: '₹79' },
+    period: { monthly: 'per month', yearly: 'per month, billed yearly' },
+    btnPrice: { monthly: '₹99', yearly: '₹79' },
+    planKey: { monthly: 'pro_monthly', yearly: 'pro_yearly' },
     features: [
       'Everything in Essential',
       'Medical timeline',
@@ -331,13 +334,19 @@ var plans = {
 
 function renderPlan() {
   var params = new URLSearchParams(window.location.search);
-  var plan = plans[params.get('plan')] || plans['essential'];
+  var planId = params.get('plan') || 'essential';
+  var cycle  = (params.get('cycle') === 'yearly') ? 'yearly' : 'monthly';
+  var plan   = plans[planId] || plans['essential'];
 
   document.getElementById('plan-badge').textContent  = plan.badge;
   document.getElementById('plan-name').textContent   = plan.name;
-  document.getElementById('plan-price').textContent  = plan.price;
-  document.getElementById('plan-period').textContent = plan.period;
-  document.getElementById('btn-price').textContent   = plan.btnPrice;
+  document.getElementById('plan-price').textContent  = plan.price[cycle];
+  document.getElementById('plan-period').textContent = plan.period[cycle];
+  document.getElementById('btn-price').textContent   = plan.btnPrice[cycle];
+
+  // Store plan key for Razorpay order creation
+  var payBtn = document.querySelector('.pay-btn');
+  if (payBtn) payBtn.setAttribute('data-plan-key', plan.planKey[cycle]);
 
   var featHTML = plan.features.map(function(f) {
     return '<div class="payment-feature">'
@@ -347,7 +356,7 @@ function renderPlan() {
   document.getElementById('plan-features').innerHTML = featHTML;
 
   // Free plan: hide card form inputs, change button
-  if (params.get('plan') === 'free') {
+  if (planId === 'free') {
     document.getElementById('plan-summary').style.borderColor = 'var(--teal)';
     document.querySelector('.payment-form-sub').textContent = 'No payment required. Click below to activate your free account.';
     document.querySelectorAll('.pay-input').forEach(function(el){ el.style.display='none'; });
