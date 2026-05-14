@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Log in — swaP</title>
+
 <link rel="stylesheet" href="styles.css">
+
 <style>
 .login-bg {
   min-height: 100vh;
@@ -12,6 +14,7 @@
   flex-direction: column;
   background: var(--bg);
 }
+
 .login-wrap {
   flex: 1;
   display: flex;
@@ -19,6 +22,7 @@
   justify-content: center;
   padding: 60px 24px;
 }
+
 .login-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -28,6 +32,7 @@
   max-width: 460px;
   box-shadow: var(--shadow-lg);
 }
+
 .login-logo {
   display: flex;
   justify-content: center;
@@ -40,6 +45,7 @@
   gap: 10px;
   margin-bottom: 28px;
 }
+
 .user-type-card {
   border: 1.5px solid var(--border);
   border-radius: 13px;
@@ -49,17 +55,44 @@
   background: var(--surface);
   text-align: center;
 }
-.user-type-card:hover { border-color: var(--teal-soft); background: var(--teal-wash); }
-.user-type-card.active { border-color: var(--teal); background: var(--teal-wash); }
-.utc-icon {
-  width: 34px; height: 34px; border-radius: 9px;
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 8px; background: var(--bg2); transition: background .22s;
+
+.user-type-card:hover {
+  border-color: var(--teal-soft);
+  background: var(--teal-wash);
 }
+
+.user-type-card.active {
+  border-color: var(--teal);
+  background: var(--teal-wash);
+}
+
+.utc-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 8px;
+  background: var(--bg2);
+  transition: background .22s;
+}
+
 .user-type-card.active .utc-icon,
-.user-type-card:hover .utc-icon { background: white; }
-.utc-icon svg { width: 17px; height: 17px; }
-.utc-name { font-size: 12.5px; font-weight: 700; color: var(--text); }
+.user-type-card:hover .utc-icon {
+  background: white;
+}
+
+.utc-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.utc-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+}
 
 .auth-heading {
   font-family: 'Syne', sans-serif;
@@ -70,6 +103,7 @@
   margin-bottom: 6px;
   letter-spacing: -.5px;
 }
+
 .auth-sub {
   font-size: 14px;
   color: var(--text2);
@@ -79,116 +113,191 @@
 }
 
 @media (max-width: 500px) {
-  .login-card { padding: 28px 20px; }
+  .login-card {
+    padding: 28px 20px;
+  }
 }
 </style>
 </head>
+
 <body class="login-bg">
 
-<!-- ══ NAV ══ -->
+<!-- NAV -->
 <nav class="nav">
-  <a href="index.html" class="logo"><img src="assets/logo-black.png" alt="swaP" class="logo-light" style="height:40px;width:auto;object-fit:contain;display:block;"><img src="assets/logo-white.png" alt="swaP" class="logo-dark" style="height:40px;width:auto;object-fit:contain;display:none;"></a>
+  <a href="index.html" class="logo">
+    <img src="assets/logo-black.png" alt="swaP" class="logo-light" style="height:40px;width:auto;object-fit:contain;display:block;">
+    <img src="assets/logo-white.png" alt="swaP" class="logo-dark" style="height:40px;width:auto;object-fit:contain;display:none;">
+  </a>
+
   <div class="nav-right">
     <button class="theme-toggle" title="Toggle theme"></button>
-    <span style="font-size:13px;color:var(--text2)">New to swaP?</span>
-    <a href="signup.html" class="nav-btn-primary">Get Started</a>
+
+    <span style="font-size:13px;color:var(--text2)">
+      New to swaP?
+    </span>
+
+    <a href="signup.html" class="nav-btn-primary">
+      Get Started
+    </a>
   </div>
 </nav>
 
-<!-- ══ LOGIN ══ -->
+<!-- LOGIN -->
 <div class="login-wrap">
   <div class="login-card">
 
     <div class="login-logo">
-      <img src="assets/logo-black.png" alt="swaP" class="logo-light" style="height:44px;width:auto;object-fit:contain;display:block;"><img src="assets/logo-white.png" alt="swaP" class="logo-dark" style="height:44px;width:auto;object-fit:contain;display:none;">
+      <img src="assets/logo-black.png" alt="swaP" class="logo-light" style="height:44px;width:auto;object-fit:contain;display:block;">
+      <img src="assets/logo-white.png" alt="swaP" class="logo-dark" style="height:44px;width:auto;object-fit:contain;display:none;">
     </div>
 
-    <div class="auth-heading">Welcome back</div>
-    <div class="auth-sub">Sign in to manage your pet's vault.</div>
+    <div class="auth-heading">
+      Welcome back
+    </div>
 
-    <!-- User type picker -->
+    <div class="auth-sub">
+      Sign in to manage your pet's vault.
+    </div>
+
+    <!-- USER TYPES -->
     <div class="user-type-grid">
+
       <div class="user-type-card active" data-role="parent" onclick="selectLoginType(this)">
         <div class="utc-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
         </div>
-        <div class="utc-name">Pet Parent</div>
+
+        <div class="utc-name">
+          Pet Parent
+        </div>
       </div>
+
       <div class="user-type-card" data-role="breeder" onclick="selectLoginType(this)">
         <div class="utc-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#3A9E92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#3A9E92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+          </svg>
         </div>
-        <div class="utc-name">Breeder</div>
+
+        <div class="utc-name">
+          Breeder
+        </div>
       </div>
+
       <div class="user-type-card" data-role="vet" onclick="selectLoginType(this)">
         <div class="utc-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
         </div>
-        <div class="utc-name">Vet Clinic</div>
+
+        <div class="utc-name">
+          Vet Clinic
+        </div>
       </div>
+
       <div class="user-type-card" data-role="rwa" onclick="selectLoginType(this)">
         <div class="utc-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
         </div>
-        <div class="utc-name">RWA Society</div>
+
+        <div class="utc-name">
+          RWA Society
+        </div>
       </div>
+
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Email address</label>
-      <input class="form-input" id="login-email" placeholder="you@example.com" type="email">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <input class="form-input" id="login-password" placeholder="••••••••" type="password">
-    </div>
-    <div style="display:flex;justify-content:flex-end;margin:-8px 0 20px">
-      <span style="font-size:13px;color:var(--teal2);cursor:pointer;font-weight:600">Forgot password?</span>
-    </div>
+    <!-- LOGIN FORM -->
+    <form onsubmit="handleLogin(event)">
 
-    <button class="submit-btn" onclick="handleLogin(event)">Sign in to Vault</button>
+      <div class="form-group">
+        <label class="form-label">
+          Email address
+        </label>
+
+        <input
+          class="form-input"
+          id="login-email"
+          placeholder="you@example.com"
+          type="email"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          Password
+        </label>
+
+        <input
+          class="form-input"
+          id="login-password"
+          placeholder="••••••••"
+          type="password"
+          required
+        >
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin:-8px 0 20px">
+        <span style="font-size:13px;color:var(--teal2);cursor:pointer;font-weight:600">
+          Forgot password?
+        </span>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        Sign in to Vault
+      </button>
+
+    </form>
 
     <div class="auth-divider">
       <div class="auth-divider-line"></div>
-      <div class="auth-divider-text">or continue with</div>
+
+      <div class="auth-divider-text">
+        or continue with
+      </div>
+
       <div class="auth-divider-line"></div>
     </div>
 
     <button class="auth-social-btn">
-      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+
       Continue with Google
     </button>
 
-    <div class="auth-switch">Don't have an account? <a href="signup.html">Sign up free</a></div>
+    <div class="auth-switch">
+      Don't have an account?
+      <a href="signup.html">Sign up free</a>
+    </div>
+
   </div>
 </div>
 
 <script src="script.js"></script>
+
 <script>
 function selectLoginType(el) {
-  document.querySelectorAll('.user-type-card').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.user-type-card').forEach(card => {
+    card.classList.remove('active');
+  });
+
   el.classList.add('active');
 }
-
-function handleLogin(e) {
-  e.preventDefault();
-  const email = document.getElementById('login-email')?.value || '';
-  const stored = localStorage.getItem('swap-user');
-  if (stored) {
-    const user = JSON.parse(stored);
-    user.loggedIn = true;
-    localStorage.setItem('swap-user', JSON.stringify(user));
-  } else {
-    localStorage.setItem('swap-user', JSON.stringify({
-      email: email || 'user@example.com',
-      name: 'Pet Parent',
-      role: document.querySelector('.user-type-card.active')?.dataset.role || 'parent',
-      loggedIn: true
-    }));
-  }
-  window.location.href = 'onboarding.html';
-}
 </script>
+
 </body>
 </html>
-
