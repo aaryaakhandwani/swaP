@@ -44,8 +44,8 @@ const authLimiter = rateLimit({
 });
 
 app.use('/api/', apiLimiter);
-app.use('/auth/login', authLimiter);
-app.use('/auth/signup', authLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/signup', authLimiter);
 
 // ── BODY PARSING ───────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
@@ -70,10 +70,10 @@ app.use(session({
   saveUninitialized: false,
   proxy: true,
   cookie: {
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   },
   name: 'swap.sid',
 }));
@@ -86,7 +86,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: `${BASE_URL}/auth/google/callback`,
+    callbackURL: `${BASE_URL}/api/auth/google/callback`,
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       const email = profile.emails[0].value;
@@ -136,7 +136,7 @@ app.use(express.static(path.join(__dirname, '../project')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ── API ROUTES ─────────────────────────────────────────────
-app.use('/auth', require('./routes/auth'));
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/pets', require('./routes/pets'));
 app.use('/api/medical', require('./routes/medical'));
 app.use('/api/dashboard', require('./routes/dashboard'));

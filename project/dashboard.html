@@ -1427,7 +1427,7 @@ function _showPlanActivationBanner(planLabel, planId) {
 // ── AUTH CHECK ──
 async function checkAuth() {
   try {
-    const res = await fetch('/auth/me', { credentials: 'include' });
+    const res = await fetch('/api/auth/me', { credentials: 'include' });
     if (!res.ok) { window.location.href = 'login.html'; return; }
     const data = await res.json();
     const user = data.user;
